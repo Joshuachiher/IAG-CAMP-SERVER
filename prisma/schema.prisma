@@ -1,0 +1,105 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             Int              @id @default(autoincrement())
+  name           String
+  email          String           @unique
+  phone          String?
+  age            Int?
+  gender         String?
+  createdAt      DateTime         @default(now()) @map("created_at")
+
+  answers        Answer[]
+  formSubmissions FormSubmission[]  // ⬅️ tambahkan ini
+   signature       Signature?       // ⬅️ relasi satu-satu
+}
+
+model Signature {
+  id        Int      @id @default(autoincrement())
+  imageUrl  String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int      @unique
+}
+
+model QuestionOption {
+  id          Int       @id @default(autoincrement())
+  question    Question  @relation(fields: [questionId], references: [id])
+  questionId  Int       @map("question_id")
+  value       String
+  label       String
+}
+
+model Answer {
+  id              Int             @id @default(autoincrement())
+  user            User            @relation(fields: [userId], references: [id])
+  userId          Int             @map("user_id")
+  question        Question        @relation(fields: [questionId], references: [id])
+  questionId      Int             @map("question_id")
+  answerText      String          @map("answer_text")
+  createdAt       DateTime        @default(now()) @map("created_at")
+
+  formSubmission  FormSubmission? @relation(fields: [formSubmissionId], references: [id])
+  formSubmissionId Int?
+}
+
+enum QuestionType {
+  text
+  choice
+  checkbox
+  signature
+  date
+  terms
+  number
+  email
+}
+
+model Question {
+  id             Int          @id @default(autoincrement())
+  questionTextId String
+  questionTextEn String
+  questionType   QuestionType @map("question_type")
+  isRequired     Boolean      @map("is_required")
+  createdAt      DateTime     @default(now()) @map("created_at")
+  order          Int?         @default(0)
+  categoryId     Int?
+  category       Category?    @relation(fields: [categoryId], references: [id])
+
+  options        QuestionOption[]
+  answers        Answer[]
+
+  key            String?      // <=== Tambahkan ini sebagai kolom nullable baru
+  placeholder    String?      // <=== Pastikan ini juga ada kalau pakai di DTO
+  description    String?
+}
+
+
+model Category {
+  id        Int        @id @default(autoincrement())
+  name      String     @unique
+  questions Question[]
+}
+
+model FormSubmission {
+  id         Int       @id @default(autoincrement())
+  user       User      @relation(fields: [userId], references: [id])
+  userId     Int
+  createdAt  DateTime  @default(now())
+
+  answers    Answer[]
+}
+

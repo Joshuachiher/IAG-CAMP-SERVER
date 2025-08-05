@@ -19,7 +19,7 @@ async function bootstrap() {
   }));
 
   app.enableCors({
-    origin: ['http://localhost:5173', 'https://pap-rosy.vercel.app/'], // URL frontend-mu
+    origin: ['http://localhost:5173', 'https://pap-rosy.vercel.app'], // URL frontend-mu
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
   });
